@@ -1,5 +1,5 @@
 /**
- * Gemini Math Mobile Fixer (iOS Version)
+ * Gemini Math Mobile Fixer (iOS Version) - Ultimate Edition
  */
 
 // 🌐 自动识别系统语言
@@ -21,19 +21,28 @@ const i18n = {
 
 const t = isChinese ? i18n.zh : i18n.en;
 
-let text = Pasteboard.paste();
+// 💡 修复1：极其稳妥的参数获取机制（优先从快捷指令取值，退而求其次读剪贴板）
+let text = "";
+if (args.shortcutParameter) {
+  text = String(args.shortcutParameter);
+} else if (args.plainTexts && args.plainTexts.length > 0) {
+  text = String(args.plainTexts[0]);
+} else {
+  text = Pasteboard.paste();
+}
 
 if (!text) {
-  // 💡 修复：环境判断，防止在 Siri、搜索框或小组件等后台环境运行 Alert 导致报错
-  if (config.runsWithSiri || config.runsInWidget) {
-    // 后台环境下改用静默的系统通知提醒
+  // 💡 修复2：全方位的后台环境拦截，防止 Alert 导致 Siri 或快捷指令崩溃
+  // config.runsInApp 为 true 说明是在 Scriptable App 里面点击播放键运行的
+  if (!config.runsInApp) { 
+    // 不在 App 内（如 Siri、搜索框、桌面点击快捷指令运行），改用静默系统通知
     let n = new Notification();
     n.title = t.errTitle;
     n.body = t.errMsg;
     n.schedule();
     Script.complete();
   } else {
-    // 正常前台运行（App内或共享表单），使用常规弹窗
+    // 正常前台调试运行（App内），使用常规弹窗
     let alert = new Alert();
     alert.title = t.errTitle;
     alert.message = t.errMsg;
@@ -43,19 +52,17 @@ if (!text) {
 } else {
   
   // 💡 核心修复：智能补全机制
-  // 如果文本里包含反斜杠 "\"（LaTeX的特征），但没有包裹 "$$"，我们就在后台自动帮它套上一层 "$$"
   if (!text.includes("$$") && !text.includes("\\[") && text.includes("\\")) {
       text = "$$\n" + text + "\n$$";
   }
 
-  // 构建网页，添加了明确的 MathJax 配置，并使用 pre-wrap 保留原始换行
+  // 构建网页，添加明确的 MathJax 配置
   let html = `
   <!DOCTYPE html>
   <html>
   <head>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <script>
-        // 强制配置引擎识别各种常见公式符号
         MathJax = {
           tex: {
             inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
@@ -77,7 +84,6 @@ if (!text) {
               border-bottom: 1px solid #eee; 
               padding-bottom: 10px; 
           }
-          /* 使用 CSS 原生属性保留换行，比字符串替换更稳定 */
           #content {
               white-space: pre-wrap; 
               word-break: break-all;
@@ -91,8 +97,15 @@ if (!text) {
   </html>
   `;
 
-  let webView = new WebView();
-  await webView.loadHTML(html);
-  await webView.present(); 
+  // 💡 修复3：如果是在后台运行，直接展示网页可能会卡住，加一层保护
+  if (!config.runsInApp) {
+      // 告诉系统这个脚本有 UI 需要展示
+      Safari.openDataDictionary(html); // 使用 Safari 预览更稳定
+  } else {
+      let webView = new WebView();
+      await webView.loadHTML(html);
+      await webView.present(); 
+  }
+  
   Script.complete();
 }
