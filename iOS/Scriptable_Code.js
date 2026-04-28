@@ -1,4 +1,3 @@
-
 /**
  * Gemini Math Mobile Fixer (iOS Version)
  */
@@ -25,11 +24,22 @@ const t = isChinese ? i18n.zh : i18n.en;
 let text = Pasteboard.paste();
 
 if (!text) {
-  let alert = new Alert();
-  alert.title = t.errTitle;
-  alert.message = t.errMsg;
-  alert.presentAlert();
-  Script.complete();
+  // 💡 修复：环境判断，防止在 Siri、搜索框或小组件等后台环境运行 Alert 导致报错
+  if (config.runsWithSiri || config.runsInWidget) {
+    // 后台环境下改用静默的系统通知提醒
+    let n = new Notification();
+    n.title = t.errTitle;
+    n.body = t.errMsg;
+    n.schedule();
+    Script.complete();
+  } else {
+    // 正常前台运行（App内或共享表单），使用常规弹窗
+    let alert = new Alert();
+    alert.title = t.errTitle;
+    alert.message = t.errMsg;
+    alert.presentAlert();
+    Script.complete();
+  }
 } else {
   
   // 💡 核心修复：智能补全机制
