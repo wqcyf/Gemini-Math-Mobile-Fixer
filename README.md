@@ -5,7 +5,7 @@
 ---
 
 <a name="english"></a>
-## 🌍 English Description
+## English Description
 
 Solve the issue where the Gemini mobile app displays raw LaTeX source code (e.g., `$$...$$`) instead of rendered formulas. This project provides non-Root/non-Jailbreak automation solutions for both iOS and Android.
 
@@ -27,7 +27,7 @@ Solve the issue where the Gemini mobile app displays raw LaTeX source code (e.g.
 ---
 
 <a name="chinese"></a>
-## 🇨🇳 中文说明
+## 中文说明
 
 解决 Gemini 手机端 App 裸露输出 LaTeX 公式源码（如 `$$...$$`）的问题。提供双端免 Root/免越狱的自动化解决方案。
 
