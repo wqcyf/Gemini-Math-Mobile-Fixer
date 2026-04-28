@@ -1,4 +1,8 @@
 
+/**
+ * Gemini Math Mobile Fixer (iOS Version)
+ */
+
 // 🌐 自动识别系统语言
 const deviceLang = Device.language(); 
 const isChinese = deviceLang.startsWith("zh");
