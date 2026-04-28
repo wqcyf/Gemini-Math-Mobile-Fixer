@@ -1,7 +1,3 @@
-/**
- * Gemini Math Mobile Fixer (iOS Version)
- * 修复版：增加智能识别与容错补全机制
- */
 
 // 🌐 自动识别系统语言
 const deviceLang = Device.language(); 
