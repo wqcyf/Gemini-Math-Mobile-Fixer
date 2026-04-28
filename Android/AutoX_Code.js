@@ -2,7 +2,6 @@
 
 /**
  * Gemini Math Mobile Fixer (Android Version)
- * 修复版：增加智能屏幕捕捉与容错补全机制
  */
 
 // 🌐 1. Language Configuration
