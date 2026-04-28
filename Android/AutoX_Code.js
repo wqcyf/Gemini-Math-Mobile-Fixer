@@ -37,6 +37,13 @@ toast(t.started);
 var lastText = "";
 var mathWin = null;
 
+// 💡 新增：转义函数，防止 < > 搞崩网页导致白屏
+function escapeHTML(str) {
+    return str.replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
+}
+
 // 3. Background Loop
 setInterval(function() {
     // 遍历屏幕上的所有文本节点
@@ -55,16 +62,25 @@ setInterval(function() {
         }
     }
 
+    // 只有当内容真的发生改变时才更新
     if (content !== "" && content !== lastText) {
         lastText = content;
-        toast(t.detecting);
-        showPop(content);
+        
+        // 💡 核心修复 2：AutoX.js 规定 UI 操作必须放在 ui.run 里面，防止崩溃
+        ui.run(function() {
+            toast(t.detecting);
+            showPop(content);
+        });
     }
 }, 2000);
 
 // 4. 显示与渲染逻辑
 function showPop(raw) {
-    if (mathWin) mathWin.close();
+    if (mathWin) {
+        mathWin.close();
+    }
+    
+    // 创建悬浮窗
     mathWin = floaty.window(
         <vertical bg="#ffffff" padding="12">
             <text text="{{t.winTitle}}" textSize="12sp" textColor="#999999" gravity="center" />
@@ -74,11 +90,14 @@ function showPop(raw) {
     
     mathWin.setPosition(Math.floor(device.width * 0.05), Math.floor(device.height * 0.2));
 
-    // 💡 核心修复 2：智能补全机制
+    // 💡 核心修复 3：智能补全机制
     // 如果提取出来的文本没有包含公式环境包裹符，强制给它套上一层 "$$"
     if (raw.indexOf("$$") === -1 && raw.indexOf("\\[") === -1 && raw.indexOf("\\") !== -1) {
         raw = "$$\n" + raw + "\n$$";
     }
+
+    // 使用 escapeHTML 处理原始文本，彻底消除转义 Bug
+    var safeRaw = escapeHTML(raw);
 
     // 组装带有 MathJax 配置的 HTML，并使用 pre-wrap 保证换行稳定
     var html = `
@@ -111,7 +130,7 @@ function showPop(raw) {
         </style>
     </head>
     <body>
-        <div id="content">${raw}</div>
+        <div id="content">${safeRaw}</div>
     </body>
     </html>`;
 
@@ -122,7 +141,3 @@ function showPop(raw) {
         mathWin.close(); 
         mathWin = null; 
     });
-}
-
-// 保持脚本主线程运行
-setInterval(() => {}, 1000);
